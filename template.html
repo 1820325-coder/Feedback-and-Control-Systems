@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Look and Cook - Premium Recipe Assistant</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,700;0,800;1,700&display=swap');
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root { 
+        --primary-color: #2d3436;
+        --accent-color: #764ba2;
+        --secondary-accent: #ff7675;
+        --text-color: #2d3436; 
+        --bg-color: #f8f9fc; 
+        --card-bg: #ffffff; 
+        --border-color: #eee; 
+        --chef-note-bg: #f8f1ff;
+        --chef-note-border: #dcd0ff;
+        --gradient-1: #667eea;
+        --gradient-2: #764ba2;
+        --gradient-3: #f093fb;
+    } 
+
+    body { 
+        font-family: 'Inter', sans-serif; 
+        background: linear-gradient(135deg, #fef9ff 0%, #f5f3ff 25%, #ede9fe 50%, #fdf4ff 75%, #faf5ff 100%);
+        color: var(--text-color); 
+        line-height: 1.6; 
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 60px 20px;
+        position: relative;
+        overflow-x: hidden;
+    } 
+
+    body::before {
+        content: '';
+        position: fixed;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: 
+            radial-gradient(ellipse at 20% 20%, rgba(102, 126, 234, 0.08) 0%, transparent 50%),
+            radial-gradient(ellipse at 80% 80%, rgba(240, 147, 251, 0.08) 0%, transparent 50%),
+            radial-gradient(ellipse at 40% 70%, rgba(118, 75, 162, 0.06) 0%, transparent 40%),
+            radial-gradient(ellipse at 70% 30%, rgba(255, 118, 117, 0.05) 0%, transparent 40%);
+        z-index: -1;
+        animation: ambientMove 20s ease-in-out infinite alternate;
+        pointer-events: none;
+    }
+
+    @keyframes ambientMove {
+        0% { transform: translate(0, 0) rotate(0deg); }
+        100% { transform: translate(2%, 2%) rotate(3deg); }
+    } 
+
+    .container {
+      width: 100%;
+      max-width: 1000px;
+      position: relative;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 60px;
+      animation: fadeInDown 1s ease-out;
+    }
+
+    .logo {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    .logo::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 200px;
+      height: 200px;
+      background: radial-gradient(circle, rgba(102, 126, 234, 0.12) 0%, rgba(240, 147, 251, 0.08) 50%, transparent 70%);
+      border-radius: 50%;
+      z-index: -1;
+      filter: blur(20px);
+    }
+
+    .logo-img {
+      width: 240px;
+      height: auto;
+      filter: drop-shadow(0 8px 32px rgba(102, 126, 234, 0.25)) drop-shadow(0 2px 8px rgba(0,0,0,0.1));
+      transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .logo-img:hover {
+      transform: scale(1.05) rotate(-1deg);
+      filter: drop-shadow(0 12px 40px rgba(102, 126, 234, 0.35)) drop-shadow(0 4px 12px rgba(0,0,0,0.15));
+    }
+
+    .header p {
+      font-size: 1.2rem;
+      color: #636e72;
+      font-weight: 400;
+      font-style: italic;
+      letter-spacing: 0.5px;
+      margin-top: 10px;
+    }
+
+    .main-card {
+      background: white;
+      border-radius: 40px;
+      padding: 60px;
+      box-shadow: 0 40px 100px rgba(0, 0, 0, 0.08);
+      animation: fadeInUp 1s ease-out;
+    }
+
+    .upload-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 35px;
+      margin-bottom: 50px;
+    }
+
+    .upload-area {
+      position: relative;
+      width: 100%;
+      max-width: 450px;
+      aspect-ratio: 1.4;
+      border: 2px dashed #e2e8f0;
+      border-radius: 32px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      background: #fcfcfc;
+      overflow: hidden;
+    }
+
+    .upload-area:hover {
+      border-color: var(--accent-color);
+      background: #fff;
+      transform: translateY(-8px);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.05);
+    }
+
+    .upload-area.drag-over {
+      border-color: var(--accent-color);
+      background: #f8f1ff;
+      transform: scale(1.02);
+    }
+
+    .upload-icon {
+      font-size: 60px;
+      margin-bottom: 20px;
+      filter: grayscale(1);
+      opacity: 0.3;
+      transition: all 0.3s;
+    }
+
+    .upload-area:hover .upload-icon {
+      filter: grayscale(0);
+      opacity: 1;
+      transform: scale(1.1);
+    }
+
+    .upload-text {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.6rem;
+      color: var(--primary-color);
+      font-weight: 700;
+    }
+
+    .upload-subtext {
+      font-size: 1rem;
+      color: #94a3b8;
+      margin-top: 8px;
+    }
+
+    #ingredientImage {
+      display: none;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      margin-top: 40px;
+    }
+
+    .btn {
+      padding: 18px 50px;
+      border: none;
+      border-radius: 20px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .btn-primary {
+      background: var(--primary-color);
+      color: white;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-4px);
+      background: #000;
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+    }
+
+    .btn-secondary {
+      background: #f1f5f9;
+      color: #64748b;
+    }
+
+    .btn-secondary:hover {
+      background: #e2e8f0;
+      transform: translateY(-4px);
+    }
+
+    .loading {
+      display: none;
+      text-align: center;
+      padding: 50px;
+    }
+
+    .spinner {
+      width: 70px;
+      height: 70px;
+      border: 3px solid #f1f5f9;
+      border-top: 3px solid var(--accent-color);
+      border-radius: 50%;
+      animation: spin 1.2s cubic-bezier(0.5, 0.1, 0.4, 0.9) infinite;
+      margin: 0 auto;
+    }
+
+    .loading-text {
+      font-family: 'Playfair Display', serif;
+      margin-top: 25px;
+      color: var(--primary-color);
+      font-weight: 700;
+      font-size: 1.5rem;
+      font-style: italic;
+    }
+
+    /* Recipe Layout Refinement */
+    .recipe-card {
+      background: var(--card-bg);
+      color: var(--text-color);
+      padding: 60px;
+      border-radius: 32px;
+      margin-bottom: 30px;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.06); 
+      border: 1px solid rgba(0,0,0,0.03);
+      position: relative;
+      display: none;
+      animation: fadeIn 0.8s ease-out;
+      max-width: 900px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .recipe-card.active {
+      display: block;
+    }
+
+    .recipe-header { 
+        text-align: center; 
+        margin-bottom: 50px; 
+        border-bottom: 1px solid #eee; 
+        padding-bottom: 40px; 
+    } 
+
+    .recipe-header h1 { 
+        font-family: 'Playfair Display', serif;
+        font-size: 3.5rem; 
+        color: var(--primary-color); 
+        margin: 0 0 20px 0; 
+        font-weight: 800;
+        letter-spacing: -1.5px;
+        line-height: 1.1;
+    } 
+
+    .recipe-meta { 
+        display: flex;
+        justify-content: center;
+        gap: 25px;
+        font-size: 0.9rem; 
+        color: #94a3b8; 
+        font-weight: 600;
+        text-transform: uppercase; 
+        letter-spacing: 2px; 
+    } 
+
+    .recipe-meta span { 
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    } 
+
+    .recipe-description { 
+        font-family: 'Playfair Display', serif;
+        font-style: italic; 
+        text-align: center; 
+        font-size: 1.4rem; 
+        color: #475569; 
+        margin: 0 auto 50px auto;
+        max-width: 85%;
+        line-height: 1.6;
+    } 
+
+    .recipe-body { 
+        display: grid; 
+        grid-template-columns: 1fr; 
+        gap: 60px; 
+    } 
+
+    @media (min-width: 768px) { 
+        .recipe-body { 
+            grid-template-columns: 1fr 1.6fr; 
+        } 
+    } 
+
+    .ingredients-section { 
+        background-color: #fafafa; 
+        padding: 40px; 
+        border-radius: 24px; 
+        border: 1px solid #f1f1f1;
+    } 
+
+    .recipe-body h2 { 
+        font-family: 'Playfair Display', serif;
+        font-size: 1.8rem; 
+        color: var(--primary-color); 
+        font-weight: 700;
+        margin-top: 0; 
+        margin-bottom: 25px; 
+        border-bottom: 1px solid #eee; 
+        padding-bottom: 15px; 
+    } 
+
+    .recipe-body h3 { 
+        font-size: 0.8rem; 
+        text-transform: uppercase; 
+        color: #94a3b8; 
+        margin: 30px 0 15px 0; 
+        font-weight: 700;
+        letter-spacing: 2px;
+    } 
+
+    .recipe-body ul { 
+        padding-left: 0; 
+        margin: 0; 
+        list-style: none;
+    } 
+
+    .recipe-body ul li { 
+        margin-bottom: 15px; 
+        padding-left: 30px;
+        position: relative;
+        font-size: 1.05rem;
+        color: #475569;
+    } 
+
+    .recipe-body ul li::before {
+        content: "•";
+        color: var(--accent-color);
+        position: absolute;
+        left: 0;
+        font-weight: 900;
+        font-size: 1.2rem;
+    }
+
+    .instructions-section ol {
+        padding-left: 0;
+        list-style: none;
+        counter-reset: step-counter;
+    }
+
+    .instructions-section ol li { 
+        margin-bottom: 40px; 
+        padding-left: 70px;
+        position: relative;
+        font-size: 1.1rem;
+        color: #334155;
+        line-height: 1.7;
+    } 
+
+    .instructions-section ol li::before { 
+        counter-increment: step-counter;
+        content: counter(step-counter);
+        position: absolute;
+        left: 0;
+        top: -5px;
+        width: 45px;
+        height: 45px;
+        background: #f8f9fa;
+        color: var(--primary-color);
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: 'Playfair Display', serif;
+        font-weight: 700;
+        font-size: 1.2rem;
+        transition: all 0.3s;
+    } 
+
+    .instructions-section ol li:hover::before {
+        background: var(--primary-color);
+        color: white;
+        transform: scale(1.1) rotate(-5deg);
+    }
+
+    .chef-note { 
+        grid-column: 1 / -1; 
+        background-color: var(--chef-note-bg); 
+        border: 1px solid var(--chef-note-border); 
+        padding: 35px; 
+        border-radius: 24px; 
+        margin-top: 20px;
+        position: relative;
+        overflow: hidden;
+        font-style: italic;
+        color: #5b21b6;
+    } 
+
+    .chef-note::before {
+        content: "“";
+        position: absolute;
+        left: 10px;
+        top: -20px;
+        font-size: 8rem;
+        opacity: 0.05;
+        font-family: 'Playfair Display', serif;
+    }
+
+    .chef-note strong { 
+        color: var(--accent-color); 
+        text-transform: uppercase; 
+        font-size: 0.8rem; 
+        display: block; 
+        margin-bottom: 12px; 
+        letter-spacing: 2px;
+        font-family: 'Inter', sans-serif;
+        font-style: normal;
+    } 
+
+    /* Navigation */
+    .cookbook-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 50px;
+      padding-top: 30px;
+      border-top: 1px solid #eee;
+    }
+
+    .nav-btn {
+      background: transparent;
+      border: 1px solid #e2e8f0;
+      color: var(--primary-color);
+      padding: 14px 35px;
+      border-radius: 100px;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    .nav-btn:hover:not(:disabled) {
+      background: var(--primary-color);
+      color: white;
+      border-color: var(--primary-color);
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+    }
+
+    .nav-btn:disabled {
+      opacity: 0.2;
+      cursor: not-allowed;
+    }
+
+    .page-indicator {
+      font-family: 'Playfair Display', serif;
+      font-weight: 700;
+      color: var(--primary-color);
+      font-size: 1.2rem;
+      font-style: italic;
+    }
+
+    /* Result Section Fixes */
+    .result-section {
+      display: none;
+      margin-top: 60px;
+    }
+
+    .result-header {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 15px;
+        margin-bottom: 40px;
+    }
+
+    .result-header h2 {
+        font-family: 'Playfair Display', serif;
+        font-size: 2.2rem;
+        color: var(--primary-color);
+    }
+
+    /* Animations */
+    @keyframes fadeInDown {
+      from { opacity: 0; transform: translateY(-30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      .main-card {
+        padding: 40px 25px;
+      }
+
+      .header h1 {
+        font-size: 2.8rem;
+      }
+
+      .recipe-card {
+        padding: 40px 25px;
+      }
+
+      .recipe-header h1 {
+        font-size: 2.5rem;
+      }
+
+      .button-group {
+        flex-direction: column;
+      }
+
+      .btn {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+
+    .error-message {
+      display: none;
+      background: #fff5f5;
+      color: #e53e3e;
+      padding: 25px;
+      border-radius: 20px;
+      border: 1px solid #feb2b2;
+      margin-top: 30px;
+      text-align: center;
+      animation: fadeIn 0.4s ease-out;
+      font-weight: 500;
+    }
+
+    .success-icon {
+      font-size: 2rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="logo">
+        <img src="L (2).png" alt="Look and Cook Logo" class="logo-img">
+      </div>
+      <p>Transform Ingredients Into Delicious Possibilities.</p>
+    </div>
+
+    <div class="main-card">
+      <div class="upload-section">
+        <div class="upload-area" id="uploadArea">
+          <div class="upload-icon">🥘</div>
+          <div class="upload-text">Upload Ingredients</div>
+          <div class="upload-subtext">Drag & drop or click to browse</div>
+        </div>
+        <input type="file" id="ingredientImage" accept="image/*">
+        
+        <div style="display: flex; align-items: center; gap: 12px; margin-top: 10px; background: #f8fafc; padding: 12px 24px; border-radius: 100px; border: 1px solid #f1f5f9;">
+          <input type="checkbox" id="visionMode" style="width: 20px; height: 20px; cursor: pointer; accent-color: var(--accent-color);">
+          <label for="visionMode" style="cursor: pointer; font-weight: 600; color: #475569; font-size: 0.95rem;">Maximum Accuracy Mode</label>
+          <span style="font-size: 0.8em; color: #94a3b8; cursor: help;" title="Uses advanced Vision AI for better detection of complex ingredients like raw meat.">ⓘ</span>
+        </div>
+      </div>
+
+      <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <div class="loading-text">Crafting your custom recipes...</div>
+      </div>
+
+      <div class="error-message" id="errorMessage"></div>
+
+      <div class="button-group">
+        <button class="btn btn-primary" onclick="uploadImage()">
+          <span>✨ Analyze Ingredients</span>
+        </button>
+        <button class="btn btn-secondary" onclick="clearUpload()">Reset</button>
+      </div>
+
+      <div class="result-section" id="resultSection">
+        <div id="result"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const uploadArea = document.getElementById('uploadArea');
+    const ingredientImage = document.getElementById('ingredientImage');
+    const loading = document.getElementById('loading');
+    const resultSection = document.getElementById('resultSection');
+    const errorMessage = document.getElementById('errorMessage');
+
+    // Backend Configuration
+    const BACKEND_URL = "http://127.0.0.1:5000";
+    const ANALYZE_ENDPOINT = `${BACKEND_URL}/analyze`;
+
+    // Drag and drop handlers
+    uploadArea.addEventListener('click', () => ingredientImage.click());
+    
+    uploadArea.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      uploadArea.classList.add('drag-over');
+    });
+
+    uploadArea.addEventListener('dragleave', () => {
+      uploadArea.classList.remove('drag-over');
+    });
+
+    uploadArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadArea.classList.remove('drag-over');
+      const files = e.dataTransfer.files;
+      if (files.length) {
+        ingredientImage.files = files;
+        uploadImage();
+      }
+    });
+
+    ingredientImage.addEventListener('change', () => {
+      const file = ingredientImage.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          uploadArea.innerHTML = `
+            <img src="${e.target.result}" style="width: 100%; height: 100%; object-fit: cover;">
+            <div style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.7); backdrop-filter: blur(10px); padding: 8px 20px; border-radius: 100px; font-size: 0.85rem; color: white; font-weight: 500; border: 1px solid rgba(255,255,255,0.2); white-space: nowrap;">
+              📸 ${file.name}
+            </div>
+          `;
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    async function uploadImage() {
+      const file = ingredientImage.files[0];
+      const useVision = document.getElementById('visionMode').checked;
+      
+      if (!file) {
+        showError("Please select an image first!");
+        return;
+      }
+
+      errorMessage.style.display = 'none';
+      loading.style.display = 'block';
+      resultSection.style.display = 'none';
+      document.querySelector('.button-group').style.display = 'none';
+
+      try {
+        // Create FormData for multipart upload
+        const formData = new FormData();
+        formData.append("image", file);
+        formData.append("vision", useVision);
+
+        // Send to Flask backend
+        const response = await fetch(ANALYZE_ENDPOINT, {
+          method: "POST",
+          body: formData
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || "Failed to analyze image");
+        }
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          displayResult(data);
+        } else {
+          showError(data.error || "Error analyzing image");
+        }
+      } catch (error) {
+        showError(error.message || "Error connecting to backend. Make sure it's running on port 5000");
+        console.error(error);
+      } finally {
+        loading.style.display = 'none';
+        document.querySelector('.button-group').style.display = 'flex';
+      }
+    }
+
+    let currentRecipeIndex = 0;
+    let totalRecipes = 0;
+
+    function displayResult(data) {
+      const resultDiv = document.getElementById('result');
+      let suggestion = data.suggestion || "";
+      
+      // Cleanup text glitches
+      suggestion = suggestion
+        .replace(/\\n/gi, '\n')
+        .replace(/\\N/gi, '\n')
+        .replace(/\n{3,}/g, '\n\n')
+        .trim();
+
+      const recipes = suggestion.split('---').filter(r => r.trim().length > 10);
+      totalRecipes = recipes.length;
+      currentRecipeIndex = 0;
+      
+      let recipesHtml = '';
+      
+      recipes.forEach((recipeText, index) => {
+        recipeText = recipeText.trim();
+        
+        const titleMatch = recipeText.match(/### (.*)/);
+        const timeMatch = recipeText.match(/\*\*Time\*\*:\s*(.*)/i);
+        const heatMatch = recipeText.match(/\*\*Heat\*\*:\s*(.*)/i);
+        const descMatch = recipeText.match(/\*\*Description\*\*:\s*"(.*)"/i) || recipeText.match(/\*\*Description\*\*:\s*(.*)/i);
+        
+        const mainIngMatch = recipeText.match(/\*\*Main Ingredients \(From Photo\)\*\*:\s*([\s\S]*?)\s*\*\*Pantry Items\*\*/i);
+        const pantryMatch = recipeText.match(/\*\*Pantry Items\*\*:\s*([\s\S]*?)\s*\*\*Instructions\*\*/i);
+        const instructionsMatch = recipeText.match(/\*\*Instructions\*\*:\s*([\s\S]*?)\s*\*\*Chef Note\*\*/i);
+        const chefNoteMatch = recipeText.match(/\*\*Chef Note\*\*:\s*([\s\S]*)/i);
+
+        const title = titleMatch ? titleMatch[1].replace(/\*\*/g, '').trim() : "Chef's Special";
+        const time = timeMatch ? timeMatch[1].trim() : "20 Mins";
+        const heat = heatMatch ? heatMatch[1].trim() : "Medium Heat";
+        const description = descMatch ? descMatch[1].trim() : "A flavorful dish crafted from your ingredients.";
+        
+        const formatList = (text) => {
+          if (!text) return "";
+          return text.trim().split('\n').map(item => {
+            let clean = item.replace(/^[-\d.*]+\s*/, '').replace(/\*\*/g, '').trim();
+            if (!clean) return "";
+            
+            const parts = clean.split(':');
+            if (parts.length > 1) {
+              return `<li><strong>${parts[0].trim()}:</strong> ${parts.slice(1).join(':').trim()}</li>`;
+            }
+            return `<li>${clean}</li>`;
+          }).filter(x => x).join('');
+        };
+
+        const mainIng = formatList(mainIngMatch ? mainIngMatch[1] : "");
+        const pantry = formatList(pantryMatch ? pantryMatch[1] : "");
+        const instructions = formatList(instructionsMatch ? instructionsMatch[1] : "");
+        const chefNote = chefNoteMatch ? chefNoteMatch[1].replace(/\*\*/g, '').trim() : "Bon appétit!";
+
+        recipesHtml += `
+          <div class="recipe-card ${index === 0 ? 'active' : ''}" id="recipe-${index}">
+            <div class="recipe-header">
+              <h1>${title}</h1>
+              <div class="recipe-meta">
+                <span>⏱ ${time}</span>
+                <span>🔥 ${heat}</span>
+              </div>
+            </div>
+
+            <p class="recipe-description">"${description.replace(/^"|"$/g, '')}"</p>
+
+            <div class="recipe-body">
+              <div class="ingredients-section">
+                <h2>Ingredients</h2>
+                <h3>From Your Photo</h3>
+                <ul>${mainIng}</ul>
+                <h3>Pantry Essentials</h3>
+                <ul>${pantry}</ul>
+              </div>
+
+              <div class="instructions-section">
+                <h2>The Process</h2>
+                <ol>${instructions}</ol>
+              </div>
+
+              <div class="chef-note">
+                <strong>💡 Chef's Secret</strong>
+                ${chefNote}
+              </div>
+            </div>
+          </div>
+        `;
+      });
+
+      let navHtml = '';
+      if (totalRecipes > 1) {
+        navHtml = `
+          <div class="cookbook-nav">
+            <button class="nav-btn" id="prevBtn" onclick="changeRecipe(-1)" disabled>← Previous Recipe</button>
+            <span class="page-indicator">Suggestion <span id="pageNum">1</span> of ${totalRecipes}</span>
+            <button class="nav-btn" id="nextBtn" onclick="changeRecipe(1)">Next Suggestion →</button>
+          </div>
+        `;
+      }
+
+      const ingredients = data.detected_ingredients || [];
+      const ingredientsList = `
+        <div style="margin-bottom: 50px; text-align: center;">
+          <h3 style="font-family: 'Playfair Display', serif; font-size: 1.2rem; color: #94a3b8; margin-bottom: 25px; text-transform: uppercase; letter-spacing: 2px;">Detected Ingredients</h3>
+          <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 12px;">
+            ${ingredients.map(ing => `
+              <div style="background: #f8fafc; padding: 10px 20px; border-radius: 100px; border: 1px solid #e2e8f0; display: flex; align-items: center; gap: 8px;">
+                <span style="font-weight: 700; color: var(--primary-color); font-size: 0.95rem;">${ing.name}</span>
+                <span style="font-size: 0.75rem; color: #94a3b8; font-weight: 500;">${Math.round(ing.confidence)}%</span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+
+      resultDiv.innerHTML = `
+        ${ingredientsList}
+        ${recipesHtml}
+        ${navHtml}
+      `;
+      resultSection.style.display = 'block';
+      resultSection.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function changeRecipe(direction) {
+      // Hide current
+      document.getElementById(`recipe-${currentRecipeIndex}`).classList.remove('active');
+      
+      // Update index
+      currentRecipeIndex += direction;
+      
+      // Show new
+      document.getElementById(`recipe-${currentRecipeIndex}`).classList.add('active');
+      
+      // Update UI
+      document.getElementById('pageNum').innerText = currentRecipeIndex + 1;
+      document.getElementById('prevBtn').disabled = currentRecipeIndex === 0;
+      document.getElementById('nextBtn').disabled = currentRecipeIndex === totalRecipes - 1;
+      
+      // Scroll to top of recipe
+      document.getElementById('result').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function showError(message) {
+      errorMessage.textContent = message;
+      errorMessage.style.display = 'block';
+      loading.style.display = 'none';
+    }
+
+    function clearUpload() {
+      ingredientImage.value = '';
+      uploadArea.innerHTML = `
+        <div class="upload-icon">🥘</div>
+        <div class="upload-text">Upload Ingredients</div>
+        <div class="upload-subtext">Drag & drop or click to browse</div>
+      `;
+      resultSection.style.display = 'none';
+      errorMessage.style.display = 'none';
+      currentRecipeIndex = 0;
+      totalRecipes = 0;
+    }
+  </script>
+</body>
+</html>
